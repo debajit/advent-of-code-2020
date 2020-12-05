@@ -3,3 +3,4 @@
 My solutions to the [[https://adventofcode.com/2020/][Advent of Code 2020]] programming puzzles, written in C++
 
 - [[file:day01/day01.org][Day 1: Report Repair]]
+- [[file:day02/day02.org][Day 2: Password Philosophy]]
