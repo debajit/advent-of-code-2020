@@ -3193,9 +3193,97 @@ Count the number of *valid* passports - those that have all required fields *and
   #include <sstream>
   #include <vector>
   #include <algorithm>
+  #include <regex>
   using namespace std;
 
-  int main() {
+  regex hairColorRegex(R"(#[0-9a-f]{6})");
+  regex heightRegex(R"(([0-9]+)(cm|in))");
+  regex passportIdRegex(R"([0-9]{9})");
+  vector<string> validEyeColors = { "amb", "blu", "brn", "gry", "grn", "hzl", "oth" };
 
+  bool foundInList(const vector<string>& list, const string& item) {
+      return find(list.begin(), list.end(), item) != list.end();
+  }
+
+  int getValidFields (const string& line) {
+      istringstream ss(line);
+      string key;
+      char separator = ':';
+      string value;
+      int validFields = 0;
+
+      while (ss >> setw(3) >> key >> separator >> value) {
+          // cout << key << "|" << separator << "|" << value << "\n";
+
+          if (key == "byr") {
+              int year = stoi(value);
+              if (1920 <= year && year <= 2020)
+                  ++validFields;
+          } else if (key == "iyr") {
+              int year = stoi(value);
+              if (2010 <= year && year <= 2020)
+                  ++validFields;
+          } else if (key == "eyr") {
+              int year = stoi(value);
+              if (2020 <= year && year <= 2030)
+                  ++validFields;
+          } else if (key == "hgt") {
+              smatch match;
+              if (regex_search(value, match, heightRegex)) {
+                  int numericHeight = stoi(match.str(1));
+                  string units = match.str(2);
+
+                  if (units == "cm" && 150 <= numericHeight && numericHeight <= 193 ||
+                      units == "in" && 59 <= numericHeight && numericHeight <= 76) {
+                      ++validFields;
+                  }
+              }
+          } else if (key == "hcl") {
+              if (regex_match(value, hairColorRegex))
+                  ++validFields;
+          } else if (key == "ecl") {
+              if (foundInList(validEyeColors, value))
+                  ++validFields;
+          } else if (key == "pid") {
+              if (regex_match(value, passportIdRegex))
+                  ++validFields;
+          }
+      }
+
+      return validFields;
+  }
+
+  int main() {
+      ifstream file("input");
+      string line;
+      int validPassports = 0;
+
+      // Read newline-separated records from text file
+      while (!file.eof()) {
+          int validFields = 0;
+
+          // cout << "START Record" << "\n";
+
+          // Read one record. Stop when we encounter a blank line
+          while(getline(file, line) && !line.empty()) {
+              validFields += getValidFields(line);
+          }
+
+          // cout << "END record. Valid fields = " << validFields << "\n\n";
+
+          if (validFields >= 7)
+              ++validPassports;
+      }
+
+      cout << validPassports << "\n";
   }
 #+end_src
+
+#+RESULTS:
+: 111
+
+*** Output
+
+#+begin_example
+111
+#+end_example
