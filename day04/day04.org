@@ -3213,8 +3213,6 @@ Count the number of *valid* passports - those that have all required fields *and
       int validFields = 0;
 
       while (ss >> setw(3) >> key >> separator >> value) {
-          // cout << key << "|" << separator << "|" << value << "\n";
-
           if (key == "byr") {
               int year = stoi(value);
               if (1920 <= year && year <= 2020)
@@ -3258,18 +3256,13 @@ Count the number of *valid* passports - those that have all required fields *and
       string line;
       int validPassports = 0;
 
-      // Read newline-separated records from text file
       while (!file.eof()) {
           int validFields = 0;
 
-          // cout << "START Record" << "\n";
-
-          // Read one record. Stop when we encounter a blank line
+          // Read one newline-separated record
           while(getline(file, line) && !line.empty()) {
               validFields += getValidFields(line);
           }
-
-          // cout << "END record. Valid fields = " << validFields << "\n\n";
 
           if (validFields >= 7)
               ++validPassports;
