@@ -100,9 +100,88 @@ As a sanity check, look through your list of boarding passes.
 #+RESULTS:
 : 996
 
-
 **** Output
 
 #+begin_example
 996
+#+end_example
+
+** Part 2
+
+*** Problem
+
+Ding! The "fasten seat belt" signs have turned on. Time to find your seat.
+
+It's a completely full flight, so your seat should be the only missing boarding pass in your list. However, there's a catch: some of the seats at the very front and back of the plane don't exist on this aircraft, so they'll be missing from your list as well.
+
+Your seat wasn't at the very front or back, though; the seats with IDs +1 and -1 from yours will be in your list.
+
+What is the ID of your seat?
+
+*** Solution
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <limits>
+  using namespace std;
+
+  int findMissingSeat (const vector<int> list) {
+      for (int i = 1; i < list.size(); ++i) {
+          if (list[i] - list[i - 1] != 1)
+              return list[i - 1] + 1;
+      }
+
+      return -1;
+  }
+
+  int main() {
+      ifstream file("input");
+      string code;
+      vector<int> seats;
+
+      while (file >> code) {
+          // Get row
+          int low = 0;
+          int high = 127;
+          for (char c : code.substr(0, 7)) {
+              if (c == 'F') {
+                  high = (low + high) / 2;
+              } else {
+                  low = (low + high) / 2;
+              }
+          }
+          int row = high;
+
+          // Get column
+          low = 0;
+          high = 7;
+          for (char c: code.substr(7)) {
+              if (c == 'L') {
+                  high = (low + high) / 2;
+              } else {
+                  low = (low + high) / 2;
+              }
+          }
+          int col = high;
+
+          int seat = row * 8 + col;
+          seats.push_back(seat);
+      }
+
+      file.close();
+
+      sort(seats.begin(), seats.end());
+
+      cout << findMissingSeat(seats);
+  }
+#+end_src
+
+#+RESULTS:
+: 671
+
+**** Output
+
+#+begin_example
+671
 #+end_example
