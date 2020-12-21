@@ -5,3 +5,4 @@ My solutions to the [[https://adventofcode.com/2020/][Advent of Code 2020]] prog
 - [[file:day01/day01.org][Day 1: Report Repair]]
 - [[file:day02/day02.org][Day 2: Password Philosophy]]
 - [[file:day03/day03.org][Day 3: Toboggan Trajectory]]
+- [[file:day04/day04.org][Day 4: Passport Processing]]
