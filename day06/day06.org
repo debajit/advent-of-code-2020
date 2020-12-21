@@ -53,7 +53,7 @@ In this example, the sum of these counts is ~3 + 3 + 3 + 1 + 1~ = ~11~
 For each group, count the number of questions to which anyone answered "yes".
 *What is the sum of those counts?*
 
-*** Solution
+*** Solution: Using a Set
 
 #+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++17 :results verbatim
   #include <iostream>
@@ -97,6 +97,45 @@ For each group, count the number of questions to which anyone answered "yes".
 
 - This problem probably took me less time to solve than any others in Advent of Code.
 - TODO: Use a map, would probably be faster.
+
+
+*** Solution: Using a Hash Map
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++17 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <unordered_map>
+  using namespace std;
+
+  int main() {
+      ifstream file("input");
+      int sum = 0;
+
+      while (!file.eof()) {
+          string line;
+
+          // NOTE: We cannot use a vector here since multiple members of
+          // a group may have answered a question (e.g. ’a’). For each
+          // question that is answered, we need only track it once.
+          unordered_map<char, bool> answered;
+
+          // Read one group’s info
+          while (getline(file, line) && !line.empty()) {
+              for (char c : line)
+                  answered[c] = true;
+          }
+
+          sum += answered.size();
+      }
+
+      file.close();
+
+      cout << "sum: " << sum << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: sum: 6457
 
 ** Part 2
 
@@ -159,7 +198,7 @@ For each group, count the number of questions to which everyone answered "yes".
           // many people there were in the group. After a group is
           // processed we can simply find the letters had an answer
           // count == number of members in the group.
-          map<char, int> answerCount; // ’a’ => 5 etc
+          unordered_map<char, int> answerCount; // ’a’ => 5 etc
           int members = 0;
 
           while (getline(file, line) && !line.empty()) {
