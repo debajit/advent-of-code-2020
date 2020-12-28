@@ -8,3 +8,4 @@ My solutions to the [[https://adventofcode.com/2020/][Advent of Code 2020]] prog
 - [[file:day04/day04.org][Day 4: Passport Processing]]
 - [[file:day05/day05.org][Day 5: Binary Boarding]]
 - [[file:day06/day06.org][Day 6: Custom Customs]]
+- [[file:day07/day07.org][Day 7: Handy Haversacks]]

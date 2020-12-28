@@ -40,6 +40,7 @@ So, in this example, the number of bag colors that can eventually contain at lea
 
 #+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :flags -std=c++17 :results verbatim
   #include <fstream>
+  #include <sstream>
   #include <vector>
   #include <utility>
   #include <unordered_map>
@@ -50,7 +51,7 @@ So, in this example, the number of bag colors that can eventually contain at lea
   const regex containerRegex(R"((.*) bags contain (.*)\.)");
   const regex bagSpecRegex(R"((\d+) (\w+\ \w+) bags?)");
 
-  class Graph {
+  class BagGraph {
 
   public:
 
@@ -65,8 +66,8 @@ So, in this example, the number of bag colors that can eventually contain at lea
           // that vertex to the target vertex. Along the way, we will
           // keep track of the vertices encounterd in the path. All
           // these vertices can contain the target bag.
-          for (const auto& [vertex, _canHoldList] : adjList) {
-              pathExistsDFS(vertex, target, path);
+          for (const auto& [fromVertex, _canHoldList] : adjList) {
+              pathExistsDFS(fromVertex, target, path);
           }
 
           return path.size();
@@ -93,8 +94,8 @@ So, in this example, the number of bag colors that can eventually contain at lea
       }
   };
 
-  Graph graphFromBagRules(const string& filename) {
-      Graph graph;
+  BagGraph graphFromBagRules(const string& filename) {
+      BagGraph graph;
 
       ifstream file(filename);
       string line;
@@ -127,7 +128,7 @@ So, in this example, the number of bag colors that can eventually contain at lea
   }
 
   int main() {
-      Graph graph = graphFromBagRules("input");
+      BagGraph graph = graphFromBagRules("input");
       cout << graph.getContainerCount("shiny gold");
   }
 #+end_src
@@ -139,4 +140,139 @@ So, in this example, the number of bag colors that can eventually contain at lea
 
 #+begin_example
 : 289
+#+end_example
+
+
+** Part 2
+
+*** Problem
+
+It's getting pretty expensive to fly these days - not because of ticket prices, but because of the ridiculous number of bags you need to buy!
+
+Consider again your shiny gold bag and the rules from the above example:
+
+- faded blue bags contain 0 other bags.
+- dotted black bags contain 0 other bags.
+- vibrant plum bags contain 11 other bags: 5 faded blue bags and 6 dotted black bags.
+- dark olive bags contain 7 other bags: 3 faded blue bags and 4 dotted black bags.
+
+  So, a single shiny gold bag must contain 1 dark olive bag (and the 7 bags within it) plus 2 vibrant plum bags (and the 11 bags within each of those): ~1 + 1*7 + 2 + 2*11~ = ~32~ bags!
+
+  Of course, the actual rules have a small chance of going several levels deeper than this example; be sure to count all of the bags, even if the nesting becomes topologically impractical!
+
+Here's another example:
+
+- shiny gold bags contain 2 dark red bags.
+- dark red bags contain 2 dark orange bags.
+- dark orange bags contain 2 dark yellow bags.
+- dark yellow bags contain 2 dark green bags.
+- dark green bags contain 2 dark blue bags.
+- dark blue bags contain 2 dark violet bags.
+- dark violet bags contain no other bags.
+
+In this example, a single shiny gold bag must contain ~126~ other bags.
+
+*How many individual bags are required inside your single shiny gold bag?*
+
+*** Solution
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++17 :results verbatim
+  #include <fstream>
+  #include <sstream>
+  #include <vector>
+  #include <utility>
+  #include <unordered_map>
+  #include <unordered_set>
+  #include <regex>
+  using namespace std;
+
+  const regex containerRegex(R"((.*) bags contain (.*)\.)");
+  const regex bagSpecRegex(R"((\d+) (\w+\ \w+) bags?)");
+
+  class WeightedBagGraph {
+
+  public:
+
+      void addEdge(const string& from, const string& to, int weight) {
+          adjList[from].push_back({to, weight});
+      }
+
+      int bagCount(const string& fromVertex) {
+          return bagCountDFS(fromVertex);
+      }
+
+      // void print() const {
+      //     for (auto& [vertex, neighborInfoList] : adjList) {
+      //         cout << vertex << ": ";
+      //         for (auto& [neighbor, count] : neighborInfoList)
+      //             cout << neighbor << " (" << count << ") ";
+      //         cout << "\n";
+      //     }
+      // }
+
+  private:
+
+      unordered_map<string, vector<pair<string, int>>> adjList;
+
+      // Count of bags inside fromVertex
+      int bagCountDFS(const string& fromVertex, int sum = 0) {
+          if (adjList[fromVertex].empty()) {
+              // No neighbors
+              return 0;
+          } else {
+              for (auto& [neighbor, count]: adjList[fromVertex]) {
+                  sum += count + count * bagCountDFS(neighbor);
+              }
+          }
+
+          return sum;
+      }
+  };
+
+  WeightedBagGraph graphFromBagRules(const string& filename) {
+      WeightedBagGraph graph;
+
+      ifstream file(filename);
+      string line;
+      smatch match;
+      string container, smallerBags, bagSpec;
+
+      while (getline(file, line)) {
+          if (regex_search(line, match, containerRegex)) {
+              container = match.str(1);
+              smallerBags = match.str(2);
+              // cout << "Container: " << container << ", smaller: " << smallerBags << "\n";
+
+              stringstream ss(smallerBags);
+              while(getline(ss, bagSpec, ',')) {
+                  // cout << "  bagSpec: " << bagSpec << "\n";
+                  if (regex_search(bagSpec, match, bagSpecRegex)) {
+                      int count = stoi(match.str(1));
+                      string color = match.str(2);
+                      // cout << "    count: " << count << "\n";
+                      // cout << "    color: " << color << "\n";
+
+                      graph.addEdge(container, color, count);
+                  }
+              }
+          }
+      }
+
+      file.close();
+      return graph;
+  }
+
+  int main() {
+      WeightedBagGraph graph = graphFromBagRules("input");
+      cout << graph.bagCount("shiny gold");
+  }
+#+end_src
+
+#+RESULTS:
+: 30055
+
+**** Output
+
+#+begin_example
+30055
 #+end_example
